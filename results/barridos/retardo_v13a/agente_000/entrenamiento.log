@@ -1,0 +1,57 @@
+Continuando desde policies/rl_v1.2.1/model.zip (2,000,000 pasos previos)
+Entrenando 'esfuerzo_retardo_v13a_000': 5,000,000 pasos, 16 entornos, semilla 1287221631
+Resultados en: runs\esfuerzo_retardo_v13a_000
+[  0.08M / 5.0M]  2614 pasos/s | retorno medio   -130.4 | episodio medio 11.97 s | transcurrido   0.5 min | faltan ~ 31.4 min
+[  0.17M / 5.0M]  2701 pasos/s | retorno medio    128.3 | episodio medio 14.04 s | transcurrido   1.1 min | faltan ~ 29.8 min
+[  0.26M / 5.0M]  2728 pasos/s | retorno medio     94.0 | episodio medio 14.79 s | transcurrido   1.6 min | faltan ~ 28.9 min
+[  0.35M / 5.0M]  2749 pasos/s | retorno medio      9.8 | episodio medio 12.22 s | transcurrido   2.1 min | faltan ~ 28.2 min
+[  0.45M / 5.0M]  2806 pasos/s | retorno medio     -7.4 | episodio medio 16.44 s | transcurrido   2.7 min | faltan ~ 27.0 min
+[  0.54M / 5.0M]  2836 pasos/s | retorno medio     90.0 | episodio medio 19.49 s | transcurrido   3.2 min | faltan ~ 26.2 min
+[  0.62M / 5.0M]  2816 pasos/s | retorno medio     30.5 | episodio medio 14.31 s | transcurrido   3.7 min | faltan ~ 25.9 min
+[  0.70M / 5.0M]  2802 pasos/s | retorno medio    -37.2 | episodio medio 14.23 s | transcurrido   4.2 min | faltan ~ 25.6 min
+[  0.80M / 5.0M]  2832 pasos/s | retorno medio     27.3 | episodio medio 16.66 s | transcurrido   4.7 min | faltan ~ 24.7 min
+[  0.90M / 5.0M]  2858 pasos/s | retorno medio     67.2 | episodio medio 19.72 s | transcurrido   5.3 min | faltan ~ 23.9 min
+[  1.00M / 5.0M]  2877 pasos/s | retorno medio    -48.1 | episodio medio 18.16 s | transcurrido   5.8 min | faltan ~ 23.2 min
+[  1.09M / 5.0M]  2872 pasos/s | retorno medio     -5.1 | episodio medio 19.43 s | transcurrido   6.3 min | faltan ~ 22.7 min
+[  1.19M / 5.0M]  2888 pasos/s | retorno medio    -67.4 | episodio medio 22.19 s | transcurrido   6.9 min | faltan ~ 22.0 min
+[  1.29M / 5.0M]  2902 pasos/s | retorno medio    -62.7 | episodio medio 18.97 s | transcurrido   7.4 min | faltan ~ 21.3 min
+[  1.38M / 5.0M]  2914 pasos/s | retorno medio   -115.7 | episodio medio 21.04 s | transcurrido   7.9 min | faltan ~ 20.7 min
+[  1.48M / 5.0M]  2928 pasos/s | retorno medio    195.6 | episodio medio 22.99 s | transcurrido   8.4 min | faltan ~ 20.0 min
+[  1.58M / 5.0M]  2940 pasos/s | retorno medio    108.7 | episodio medio 25.14 s | transcurrido   9.0 min | faltan ~ 19.4 min
+[  1.68M / 5.0M]  2950 pasos/s | retorno medio    179.1 | episodio medio 24.61 s | transcurrido   9.5 min | faltan ~ 18.8 min
+[  1.78M / 5.0M]  2959 pasos/s | retorno medio    148.2 | episodio medio 22.44 s | transcurrido  10.0 min | faltan ~ 18.1 min
+[  1.88M / 5.0M]  2968 pasos/s | retorno medio    147.9 | episodio medio 23.47 s | transcurrido  10.5 min | faltan ~ 17.5 min
+[  1.97M / 5.0M]  2976 pasos/s | retorno medio    314.5 | episodio medio 25.79 s | transcurrido  11.1 min | faltan ~ 16.9 min
+[  2.06M / 5.0M]  2972 pasos/s | retorno medio    290.5 | episodio medio 26.09 s | transcurrido  11.6 min | faltan ~ 16.5 min
+[  2.16M / 5.0M]  2979 pasos/s | retorno medio    370.1 | episodio medio 23.27 s | transcurrido  12.1 min | faltan ~ 15.9 min
+[  2.26M / 5.0M]  2984 pasos/s | retorno medio    317.5 | episodio medio 24.18 s | transcurrido  12.6 min | faltan ~ 15.3 min
+[  2.36M / 5.0M]  2989 pasos/s | retorno medio    337.6 | episodio medio 22.94 s | transcurrido  13.2 min | faltan ~ 14.7 min
+[  2.46M / 5.0M]  2994 pasos/s | retorno medio    307.4 | episodio medio 25.23 s | transcurrido  13.7 min | faltan ~ 14.2 min
+[  2.56M / 5.0M]  2999 pasos/s | retorno medio    383.1 | episodio medio 25.21 s | transcurrido  14.2 min | faltan ~ 13.6 min
+[  2.65M / 5.0M]  3000 pasos/s | retorno medio    298.7 | episodio medio 24.94 s | transcurrido  14.7 min | faltan ~ 13.0 min
+[  2.75M / 5.0M]  3005 pasos/s | retorno medio    336.4 | episodio medio 25.71 s | transcurrido  15.3 min | faltan ~ 12.5 min
+[  2.85M / 5.0M]  3009 pasos/s | retorno medio    465.7 | episodio medio 25.21 s | transcurrido  15.8 min | faltan ~ 11.9 min
+[  2.95M / 5.0M]  3013 pasos/s | retorno medio    441.1 | episodio medio 23.42 s | transcurrido  16.3 min | faltan ~ 11.3 min
+[  3.04M / 5.0M]  3007 pasos/s | retorno medio    476.0 | episodio medio 24.47 s | transcurrido  16.8 min | faltan ~ 10.9 min
+[  3.14M / 5.0M]  3011 pasos/s | retorno medio    399.5 | episodio medio 23.76 s | transcurrido  17.4 min | faltan ~ 10.3 min
+[  3.24M / 5.0M]  3015 pasos/s | retorno medio    301.6 | episodio medio 22.39 s | transcurrido  17.9 min | faltan ~  9.8 min
+[  3.33M / 5.0M]  3019 pasos/s | retorno medio    515.4 | episodio medio 24.42 s | transcurrido  18.4 min | faltan ~  9.2 min
+[  3.43M / 5.0M]  3022 pasos/s | retorno medio    186.2 | episodio medio 22.78 s | transcurrido  18.9 min | faltan ~  8.6 min
+[  3.53M / 5.0M]  3024 pasos/s | retorno medio    287.3 | episodio medio 22.48 s | transcurrido  19.5 min | faltan ~  8.1 min
+[  3.63M / 5.0M]  3025 pasos/s | retorno medio    282.4 | episodio medio 22.54 s | transcurrido  20.0 min | faltan ~  7.6 min
+[  3.71M / 5.0M]  3017 pasos/s | retorno medio    470.3 | episodio medio 23.23 s | transcurrido  20.5 min | faltan ~  7.1 min
+[  3.79M / 5.0M]  3009 pasos/s | retorno medio    275.9 | episodio medio 22.03 s | transcurrido  21.0 min | faltan ~  6.7 min
+[  3.87M / 5.0M]  2998 pasos/s | retorno medio    132.6 | episodio medio 22.43 s | transcurrido  21.5 min | faltan ~  6.3 min
+[  3.96M / 5.0M]  2997 pasos/s | retorno medio    324.5 | episodio medio 21.73 s | transcurrido  22.0 min | faltan ~  5.8 min
+[  4.06M / 5.0M]  2992 pasos/s | retorno medio    496.5 | episodio medio 24.69 s | transcurrido  22.6 min | faltan ~  5.3 min
+[  4.15M / 5.0M]  2996 pasos/s | retorno medio    225.4 | episodio medio 22.95 s | transcurrido  23.1 min | faltan ~  4.7 min
+[  4.25M / 5.0M]  2998 pasos/s | retorno medio    288.1 | episodio medio 22.74 s | transcurrido  23.6 min | faltan ~  4.2 min
+[  4.35M / 5.0M]  3001 pasos/s | retorno medio    286.2 | episodio medio 21.01 s | transcurrido  24.2 min | faltan ~  3.6 min
+[  4.45M / 5.0M]  3003 pasos/s | retorno medio    503.9 | episodio medio 24.05 s | transcurrido  24.7 min | faltan ~  3.1 min
+[  4.55M / 5.0M]  3007 pasos/s | retorno medio    386.0 | episodio medio 23.39 s | transcurrido  25.2 min | faltan ~  2.5 min
+[  4.64M / 5.0M]  3010 pasos/s | retorno medio    216.5 | episodio medio 22.55 s | transcurrido  25.7 min | faltan ~  2.0 min
+[  4.74M / 5.0M]  3013 pasos/s | retorno medio    532.3 | episodio medio 23.93 s | transcurrido  26.2 min | faltan ~  1.4 min
+[  4.84M / 5.0M]  3015 pasos/s | retorno medio    559.5 | episodio medio 24.78 s | transcurrido  26.8 min | faltan ~  0.9 min
+[  4.94M / 5.0M]  3018 pasos/s | retorno medio    563.2 | episodio medio 26.04 s | transcurrido  27.3 min | faltan ~  0.3 min
+[  5.01M / 5.0M]  3014 pasos/s | retorno medio    691.2 | episodio medio 24.47 s | transcurrido  27.7 min | faltan ~  0.0 min
+Listo. Modelo final: runs\esfuerzo_retardo_v13a_000\final_model.zip

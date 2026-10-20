@@ -128,6 +128,9 @@ def main() -> int:
     ap.add_argument("--checkpoints", type=int, default=3, help="cuantos checkpoints evaluar por agente")
     ap.add_argument("--n-envs", type=int, default=16)
     ap.add_argument("--eval-vx", type=float, default=0.45)
+    ap.add_argument("--env-extra", default=None,
+                    help='JSON con parametros extra del entorno para todos los agentes (rl_v1.3), p. ej. '
+                         '{"retardo_accion_ms": [20, 80], "escala_fsr": [0.4, 1.1]}')
     ap.add_argument("--base", type=Path, default=BASE,
                     help="politica de partida: carpeta de policies/ (default rl_v1.1) o checkpoint .zip de un run "
                          "(paso 62g2: seguir al mejor agente; su config sale de runs/<run>/config.yaml)")
@@ -176,6 +179,8 @@ def main() -> int:
         cfg["env"]["umbral_esfuerzo"] = UMBRAL
         cfg["env"]["modo_esfuerzo"] = modo
         cfg["env"]["pesos"].update(extra)     # fase M3: p. ej. centrado mas fuerte
+        if a.env_extra:
+            cfg["env"].update(json.loads(a.env_extra))   # rl_v1.3: retraso de motores y escala de FSR
         (dir_ag / "config.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
         run = f"esfuerzo_{a.nombre}_{i:03d}"
         modelo = ROOT / "runs" / run / "final_model.zip"

@@ -1197,3 +1197,133 @@ para la visión, el trabajo de Daniel en [danielpaya/nao_linea](https://github.c
   - la paridad suma 6 imágenes: cinta blanca sobre piso oscuro y cinta verde sobre madera en modo color, con el
     `color_ref` calculado con la fórmula de `demo/build_scene.py`. El resultado es `revisiones=19947 fallos=0`;
   - un simulacro con un `pista_robot.json` de prueba en modo color escribe `colorMode = true` con los mismos ejes.
+
+### E65 — `bhuman` abortaba al arrancar `CopaNAORace` en el robot: el Logger pedía `BallPercept`
+- **Fecha / paso:** 2026-10-16, paso 68d. Primera ejecución de la fase N2 en un NAO real (naonaldo).
+- **Síntoma:** el despliegue terminaba en `DEPLOY_OK`, pero el servicio quedaba caído:
+  ```
+  × bhuman.service - B-Human service
+       Active: failed (Result: exit-code) since Fri 2026-10-16 16:51:29 UTC; 29s ago
+      Process: 6211 ExecStart=/home/nao/bin/bhuman -b (code=exited, status=1/FAILURE)
+  ```
+  En el log de texto del robot (`/home/nao/logs/bhumand_(13).log`):
+  ```
+  16:51:29 scenario CopaNAORace
+  16:51:29 B-Human: Start.
+  16:51:29 Error: Logger: Thread Upper should not log default representation BallPercept
+  16:51:29 ----
+  16:51:29 sigABRT
+  ```
+- **Causa:** `CopaNAORace` no tenía `logger.cfg`, así que B-Human usaba `Scenarios/Default/logger.cfg` (`enabled = true`,
+  loguea `BallPercept` en Upper y Lower). En `CopaNAORace`, `BallPercept` es una representación por defecto (no hay
+  detector de pelota), y `Logger.cpp` aborta si se pide loguear una. Ni la revisión del grafo ni los simulacros lo
+  vieron, porque el Logger solo se activa en el robot (`#ifndef TARGET_ROBOT enabled = false`).
+- **Solución** (decisión de Camilo; único archivo agregado dentro de la carpeta de la fase N2 de Luis Mario):
+  `bhuman/Config/Scenarios/CopaNAORace/logger.cfg`.
+  - Se revisaron los 16 `logger.cfg` de SabanaHerons2026 (`master`, `f9f709f`): 5 variantes. Default (y 11 iguales) y
+    AnyPlaceDemo loguean `BallPercept` (abortarían); 2D y WhistleTest no abortan pero no guardan nada útil; Image2023
+    está apagado.
+  - Se escribió uno propio con el formato y parámetros de `Default`, que guarda solo lo de la carrera y nunca una
+    representación por defecto:
+    - Lower: `FrameInfo`, `CameraInfo`, `CameraMatrix`, `LanePercept`;
+    - Cognition: `CopaRaceState`, `CopaRaceDecision`, `MotionRequest`, `EnhancedKeyStates`;
+    - Motion: `CopaRLWalkStatus`, `JointRequest`, `JointSensorData`, `InertialData`, `InertialSensorData`,
+      `FsrSensorData`, `FsrData`, `SystemSensorData`, `FallDownState`, `GroundContactState`, `MotionInfo`,
+      `OdometryData`, `KeyStates`.
+  - Antes de desplegarlo, se repitió offline la revisión de `Logger.cpp` contra `CopaNAORace/threads.cfg`: 0 errores.
+- **Verificación:** redespliegue a las 12:04 (`DEPLOY_OK … vx=0.3`); un toque al pecho pone a naonaldo de pie y dice
+  "learned walk ready" (lo vio Camilo).
+
+### E66 — WSL dañado en el PC de Camilo: `REGDB_E_CLASSNOTREG`
+- **Fecha / paso:** 2026-10-16, preparación del PC para el despliegue (guía, sección 3.2).
+- **Síntoma:**
+  ```
+  PS C:\Windows\system32> wsl --install -d Ubuntu-24.04
+  wsl: Parece que la instalación de WSL está dañada (código de error: Wsl/CallMsi/Install/REGDB_E_CLASSNOTREG).
+  Presione cualquier tecla para reparar WSL o CTRL-C para cancelar.
+  ```
+  La primera vez el aviso venció sin respuesta y el comando terminó con `Clase no registrada`.
+- **Causa:** paquete de WSL (2.7.3) instalado a medias; la virtualización del procesador sí estaba activa.
+- **Solución:** volver a correr el comando y presionar una tecla en el aviso: `Actualizando el Subsistema de Windows para
+  Linux a la versión 3.0.3.` Luego, otra vez `wsl --install -d Ubuntu-24.04` activó `VirtualMachinePlatform` (pidió
+  reiniciar) y, tras reiniciar, instaló Ubuntu 24.04.
+
+### E67 — `compilar_bhuman.py --install-toolchain` no encontraba paquetes en un Ubuntu recién instalado
+- **Fecha / paso:** 2026-10-16, guía, sección 3.3.
+- **Síntoma:**
+  ```
+  E: Unable to locate package ccache
+  E: Unable to locate package clang-18
+  E: Unable to locate package mold
+  ```
+- **Causa:** el instalador sin `sudo` usa `apt-get download`, que necesita la lista de paquetes; en un Ubuntu nuevo de
+  WSL esa lista está vacía hasta correr `sudo apt update`.
+- **Solución:** en la terminal de Ubuntu, `sudo apt update` y `sudo apt install -y clang mold cmake ccache ninja-build
+  rsync openssh-client` (la otra vía de la guía). `compilar_bhuman.py --check`: 7/7 `ok`. La compilación dio el mismo
+  binario que la de Luis Mario (`94766ce0…3604`).
+
+### E68 — Otro programa (escenario `Maze`) reemplazó el despliegue de la carrera en naonaldo
+- **Fecha / paso:** 2026-10-16, paso 68d.
+- **Síntoma:** después del primer `DEPLOY_OK` (11:29), la ventana decía `sin manifiesto de la carrera` y el robot tenía
+  los ojos rojos. En el robot: `scenario = Maze`, sin `Scenarios/CopaNAORace` ni `carrera_deploy.json`, con la
+  configuración escrita a las 11:39 (16:39 UTC).
+- **Causa:** a las 11:39 se desplegó encima otro proyecto de B-Human (laberinto, escenarios `Maze`/`MazeSafe`); el
+  despliegue reemplaza `/home/nao/Config` completo. Los ojos rojos eran el color de equipo de ese programa
+  (`fieldPlayerColor = red`), no un error.
+- **Solución:** redesplegar la carrera y coordinar el uso de naonaldo con quien trabaja en el laberinto.
+
+### E69 — `bhuman` moría al pasar a "en sus marcas": la estrategia de fútbol veía un equipo entero
+- **Fecha / paso:** 2026-10-16, paso 68d (loki, después de arreglar E65).
+- **Síntoma:** un toque al pecho ponía al robot "learned walk ready" y uno o dos segundos después el programa moría. En
+  Release:
+  ```
+  19:08:33 [CopaRace] t=109837 fase unstiff -> waiting carril=learned walk
+  19:08:33 Saying learned walk ready
+  19:08:34 ----
+  19:08:34 sigSEGV
+  ```
+  Pasaba con cualquier política (rl_v1.2 y rl_v1.2.1), con el Logger apagado o encendido, con el jugador 1, 5 o 6 y en
+  dos robots (naonaldo y loki). Compilando en Develop (con verificaciones), el hilo Cognition dejó:
+  ```
+  19:22:45 .../StrategyBehaviorControl/Behavior.cpp:600: ASSERT(remainingAgents.size() <= positionSubsets->size()) failed
+  ...
+  19:22:45 sigABRT
+  ```
+- **Causa:** `CopaRaceController::update(GameState&)` hacía `gameState.ownTeam.playerStates.fill(GameState::active)`.
+  Al pasar a "waiting" el robot deja de estar en el estado inicial y la estrategia de fútbol (`StrategyBehaviorControl`,
+  `s4v4_full`) crea un agente por cada jugador activo: con todo el equipo "activo" había más compañeros que posiciones
+  y el reparto de posiciones fallaba (en Release, acceso fuera de rango → `sigSEGV`). No se vio antes porque la fase N2
+  nunca había corrido en un robot.
+- **Solución** (Camilo autorizó tocar ese archivo de Luis Mario): los demás jugadores quedan como `substitute` y solo
+  el propio robot toma `gameState.playerState`. Release recompilado sin advertencias (binario `eccabeed…6501`).
+- **Verificación:** en loki, pecho → "learned walk ready" sin caerse, botón medio → marcha, botón trasero → "stop".
+- **Diagnóstico de paso:** el Logger no era el culpable (se apagó y falló igual); el número de jugador tampoco (el
+  jugador 1 falló igual).
+
+### E70 — En el robot real la marcha no alterna bien: los motores reales tienen ~50-60 ms de retraso
+- **Fecha / paso:** 2026-10-16, paso 68d (loki, en el piso, `rl_v1.2.1`).
+- **Síntoma:** "pone la pierna derecha adelante y la izquierda atrás y mueve las articulaciones, pero no las intercala".
+- **Medición** (log binario de B-Human leído con `scripts/leer_log_bhuman.py`, `data/real/sesion_01/`):
+  | | Retraso orden → ángulo medido | Alternancia rodillas izq/der (corr.) |
+  |---|---|---|
+  | loki (cadera pitch / rodilla / tobillo pitch) | 48 / 60 / 48 ms | −0.21 (medido), −0.42 (pedido) |
+  | Simulación (rl_v1.2.1, vx 0.30) | ~0 ms | −0.84 |
+
+  Además: los FSR de loki marcan ~1.3 kg por pie de pie (2.6 kg en total, contra 5.4 kg del robot; en simulación
+  ~2.5 kg por pie), y se usó `vx_cmd` 0.05, fuera de lo entrenado (0.15-0.56). Los ángulos que pide la política son
+  parecidos a los de la simulación (mismos topes, ritmo de 2 Hz): la exportación a C++ está bien.
+- **Causa:** la simulación aplicaba cada orden a los motores al instante; el NAO real (B-Human + LoLA + servos) tarda
+  2-3 decisiones de la política. Con 60 ms de retraso simulado, `rl_v1.2.1` también se cae en 1-2 s y su alternancia se
+  degrada: la simulación reproduce el problema.
+- **Solución:** `NaoRaceEnv` sortea por episodio un retraso de las órdenes (`retardo_accion_ms`) y una escala de la carga
+  de los pies en la observación (`escala_fsr`); ajuste fino de `rl_v1.2.1` con esa aleatorización → `rl_v1.3`.
+
+### E71 — Al levantar el robot, la marcha RL seguía moviendo las piernas
+- **Fecha / paso:** 2026-10-16, paso 68d (loki). Lo vio Camilo: el robot dice "Picked up" al levantarlo y "Lets go" al
+  bajarlo, pero la marcha no se detenía.
+- **Causa:** el detector de caídas de B-Human (`FallDownStateProvider`) sí detecta el levantamiento
+  (`FallDownState::pickedUp`) y lo anuncia, pero `CopaRLWalkEngine` no lo consultaba: solo paraba por inclinación y por
+  temperatura.
+- **Solución:** `CopaRLWalkEngine` requiere `FallDownState`; levantado mientras camina = paro de seguridad enclavado
+  (motivo `levantado` en el log), como la inclinación. Se rearma con el botón delantero. Release sin advertencias
+  (`7a22cc8e…0a3a`), grafo de módulos con 0 errores. Pendiente de probar en el robot.

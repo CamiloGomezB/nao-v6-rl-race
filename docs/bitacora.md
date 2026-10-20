@@ -2250,3 +2250,47 @@ Cada celda: faltas de 44 (con el filtro del 80 %) / peor esfuerzo / tiempo medio
 - **Commit:** lo hizo Claude Code en `main` a pedido explícito de Luis Mario ("commitea y sube a remoto"), después de
   traer el commit `a4d6b37` de Camilo. Excepción a la regla de `CLAUDE.md`, que dice que los commits los hace el
   usuario.
+
+### 2026-10-16 — Paso 68d (en curso): PC preparado y primer despliegue de la carrera en naonaldo
+- **Autor:** Claude Code, con Camilo (que manejó el robot y la ventana de despliegue).
+- **Revisión previa:** se revisó la fase N2 de Luis Mario (commit `ed8baa6`). Decisión de Camilo: **lo que agregó Luis
+  Mario no se toca**; se usa tal cual para desplegar. Única excepción, pedida por Camilo: el `logger.cfg` de E65.
+- **PC de Camilo** (guía `docs/GUIA_DESPLIEGUE_ROBOT_FISICO.md`, sección 3):
+  - WSL estaba dañado (E66): se reparó a la versión 3.0.3 y se instaló Ubuntu 24.04;
+  - herramientas de compilación: el instalador sin `sudo` falló (E67) y se instalaron con `sudo apt`;
+  - IP fija `192.168.49.100` en el Ethernet;
+  - compilación Release: 493 archivos, sin errores, **mismo binario que Luis Mario**
+    (`94766ce0780ff9c6d24e9a5e5b4d6b1d4842e763f7965f943b7fb2d39b893604`);
+  - la prueba de paridad no corre en este PC (`[FALLA] no hay CMake ni compilador de C++`; faltan las Visual Studio
+    Build Tools, como en el paso 50). La guía la pide solo antes de competir.
+- **Robot naonaldo** (`192.168.49.9`): tenía B-Human del equipo activo y ningún despliegue de la carrera.
+  - Simulacro y despliegue (11:29): `DEPLOY_OK`, pero con `vx=0.45` porque la columna `vx_cmd` estaba en 0.
+  - A las 11:39 otro proyecto (laberinto) se desplegó encima (E68).
+  - Segundo despliegue (11:46, `vx=0.3`): manifiesto y archivos correctos, pero `bhuman` abortaba al arrancar por el
+    Logger (E65).
+  - Se agregó `bhuman/Config/Scenarios/CopaNAORace/logger.cfg` (solo representaciones de la carrera, revisado offline
+    con 0 errores) y se redesplegó (12:04, `DEPLOY_OK … politica=rl_v1.2.1 vx=0.3 arranque=buttonOnly wifi=NONE`).
+  - **Resultado:** con un toque al pecho, naonaldo se pone de pie y dice "learned walk ready".
+- **Sin arnés:** la primera marcha se hace con el robot sostenido en el aire por el torso (suspendido) y luego en el
+  piso con una persona lista para atraparlo, 1 m, `vx_cmd` 0.30.
+- **Siguiente:** completar el 68d: marcha en el aire, paros por pecho y botón trasero, paro por inclinación, luego
+  1 m en el piso; bajar los logs a `data/real/sesion_01/`. Avisar a Luis Mario del E65 (el `logger.cfg` quedó en su
+  carpeta).
+
+### 2026-10-16 — Paso 68d: E69 arreglado; la marcha real falla por el retraso de los motores (E70) → rl_v1.3
+- **Autor:** Claude Code, con Camilo (pruebas con loki, `192.168.49.3`).
+- **E69:** `bhuman` moría al tocar el pecho. Con una compilación Develop se vio el `ASSERT` de la estrategia de fútbol;
+  la causa era `CopaRaceController` marcando a todo el equipo como activo. Se corrigió (autorización de Camilo para tocar
+  ese archivo) y ahora los botones y los paros funcionan en loki.
+- **Marcha en el robot:** arranca, mide el rumbo de pie y camina, pero no alterna bien las piernas. Herramienta nueva
+  `scripts/leer_log_bhuman.py` (lee los logs binarios de B-Human sin compilar nada, con el TypeInfo del propio log); el
+  log de la carrera (`bhuman/Config/Scenarios/CopaNAORace/logger.cfg`) se volvió a encender. Diagnóstico (E70): retraso
+  de 48-60 ms de los motores reales, FSR a la mitad y `vx_cmd` 0.05 fuera de lo entrenado. Logs en
+  `data/real/sesion_01/`.
+- **Decisión de Camilo:** arreglarlo de una. `NaoRaceEnv` gana `retardo_accion_ms` y `escala_fsr` (por defecto 0 y 1:
+  las políticas anteriores no cambian; `check_race_env.py` OK y rl_v1.2.1 da los mismos 11.9 s).
+  `barrido_esfuerzo.py` gana `--env-extra`. Ajuste fino desde rl_v1.2.1, 2 agentes × 5M pasos: retraso 0-80 ms y
+  20-80 ms, FSR × 0.4-1.1, mismos castigos y filtros (80 %, rectitud, faltas) → `rl_v1.3`.
+
+- **E71 (mismo día):** al levantar el robot ("Picked up") la marcha seguía. `CopaRLWalkEngine` ahora para con
+  `FallDownState::pickedUp` mientras camina. Compilado (`7a22cc8e…`), falta probarlo en loki.

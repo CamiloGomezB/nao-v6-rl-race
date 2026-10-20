@@ -343,7 +343,10 @@ en el hilo Motion (12 ms), y el mismo binario trae el carril B-Human. Documentos
 - [x] **68c. Herramientas de despliegue**: `bhuman/Make/Common/deployCopaRace`, `deploy/robot_deploy.py` y la ventana `DeployCarreraNAO.bat` (robots en red, carril, política RL, `vx_cmd`, arranque, visión desde `config/pista_robot.json`, Wi-Fi apagado) — ✅ Simulacro con 2 robots: `DEPLOY_OK` y la configuración esperada en cada uno
   - Hecho: simulacro de `falcanao` (RL) y `loki` (B-Human, `vx_cmd` 0.40) desde la ventana y por línea de comandos;
     modo color de la visión probado con un `pista_robot.json` de prueba.
-- [ ] **68d. Primera prueba en un NAO real, suspendido**: arranque, gestos, paro por el pecho y el botón trasero, paro por inclinación, visión (`d`, `psi` en el log) — ✅ La lista de la sección 6 de la guía se cumple; datos en `data/real/sesion_NN/`
+- [~] **68d. Primera prueba en un NAO real, suspendido**: arranque, gestos, paro por el pecho y el botón trasero, paro por inclinación, visión (`d`, `psi` en el log) — ✅ La lista de la sección 6 de la guía se cumple; datos en `data/real/sesion_NN/`
+  - En curso (2026-10-16, naonaldo): PC preparado (WSL, toolchain, mismo binario `94766ce0…`), despliegue
+    `rl_v1.2.1` a `vx_cmd` 0.30. Arreglado el aborto por el Logger con `CopaNAORace/logger.cfg` (E65); con el
+    pecho se pone de pie y dice "learned walk ready". Falta la marcha (en el aire, luego 1 m), los paros y los logs.
 - [ ] **68e. Revisión del cambio de diseño** por Camilo y Luis Mario: inferencia en C++ a bordo en vez de Python 2.7, gestos de PenaltyStack, cierre o descarte de los pasos 66 y 68 — ✅ Decisión anotada en la bitácora
 
 ## Fase O — Robot real

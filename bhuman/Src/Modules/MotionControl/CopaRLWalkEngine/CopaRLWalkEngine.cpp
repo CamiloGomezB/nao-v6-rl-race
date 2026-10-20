@@ -137,6 +137,10 @@ bool CopaRLWalkPhase::revisarSeguridad()
   std::string motivo;
   if(estado == Estado::caminando && inclinacion > engine.maxTilt)
     motivo = "inclinacion";
+  // Sesion real 1 (2026-10-16): al levantar el robot B-Human dice "Picked up", pero la marcha RL seguia moviendo las
+  // piernas en el aire. Levantado mientras camina = paro de seguridad (se rearma con el boton delantero).
+  else if(estado == Estado::caminando && engine.theFallDownState.state == FallDownState::pickedUp)
+    motivo = "levantado";
   else if(maxTemp >= engine.maxLegTemperature)
     motivo = std::string("temperatura ") + TypeRegistry::getEnumName(caliente);
   if(motivo.empty())

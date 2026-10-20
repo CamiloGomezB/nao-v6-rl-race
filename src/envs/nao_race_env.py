@@ -19,6 +19,7 @@
 """
 
 import math
+from collections import deque
 from pathlib import Path
 
 import gymnasium as gym
@@ -110,6 +111,10 @@ class NaoRaceEnv(gym.Env):
         rumbo_objetivo: str = "carril",     # "carril": rumbo de la IMU - psi medido de pie (paso 58c, E50);
                                             # "arranque": rumbo de la IMU al arrancar (como se entrenaron v01 y v02)
         escena: str | None = None,          # MJCF de la escena (default assets/nao/scene.xml); la demo usa la pista
+        retardo_accion_ms: tuple[float, float] = (0.0, 0.0),   # rl_v1.3 (sesion real 1, loki): los motores reales
+                                            # siguen la orden con 48-60 ms de retraso; se sortea por episodio
+        escala_fsr: tuple[float, float] = (1.0, 1.0),          # rl_v1.3: los FSR de loki marcan ~0.5 del peso;
+                                            # escala de la carga de cada pie en la OBSERVACION, sorteada por episodio
         umbral_esfuerzo: float = 0.75,      # castigo esfuerzo_motor: par RMS / par continuo por encima de esto (fase
                                             # M2: 75 %, con margen sobre el limite del 80 %)
         modo_esfuerzo: str = "media",       # "media": sum max(0, sqrt(media movil de 1 s) - u) / u;
@@ -141,6 +146,11 @@ class NaoRaceEnv(gym.Env):
             raise ValueError(f"rumbo_objetivo debe ser 'carril' o 'arranque', no {rumbo_objetivo!r}")
         self.rumbo_objetivo = rumbo_objetivo
         self.umbral_esfuerzo = float(umbral_esfuerzo)
+        self.retardo_accion_ms = tuple(retardo_accion_ms)
+        self.escala_fsr_rango = tuple(escala_fsr)
+        self._retardo_s = 0.0
+        self._escala_fsr = np.ones(2)
+        self._cola_ctrl = deque()
         if modo_esfuerzo not in ("media", "instante"):
             raise ValueError(f"modo_esfuerzo debe ser 'media' o 'instante', no {modo_esfuerzo!r}")
         self.modo_esfuerzo = modo_esfuerzo
@@ -211,6 +221,13 @@ class NaoRaceEnv(gym.Env):
         self._sortear_friccion(rng)
         self._sortear_asimetrias(rng)
         self._sortear_camara(rng)
+        # rl_v1.3: retraso de los motores y escala de los FSR. Solo se sortean si el rango no es nulo, para que las
+        # politicas anteriores (rango 0) consuman el mismo azar y den los mismos episodios que antes.
+        lo, hi = self.retardo_accion_ms
+        self._retardo_s = _u(rng, (lo, hi)) / 1000.0 if hi > 0 else 0.0
+        lo, hi = self.escala_fsr_rango
+        self._escala_fsr = rng.uniform(lo, hi, 2) if (lo, hi) != (1.0, 1.0) else np.ones(2)
+        self._cola_ctrl = deque()
         # Episodio entero sin camara (solo si se pide: con 0 no se consume el generador y v01 queda igual).
         self._vision_ep = self.vision and not (self.sin_vision_prob > 0 and rng.random() < self.sin_vision_prob)
         self.vx_cmd = _u(rng, self.vx_rango)
@@ -251,7 +268,11 @@ class NaoRaceEnv(gym.Env):
     def step(self, action):
         a = np.clip(np.asarray(action, dtype=np.float64), -1.0, 1.0)
         obj = C.accion_a_objetivos(a)
-        self.data.ctrl[self._act] = np.array([obj[n] for n in C.ARTICULACIONES_ACCION]) + self._cal
+        ctrl = np.array([obj[n] for n in C.ARTICULACIONES_ACCION]) + self._cal
+        if self._retardo_s > 0:
+            self._cola_ctrl.append((self.data.time + self._retardo_s, ctrl))   # llega a los motores mas tarde
+        else:
+            self.data.ctrl[self._act] = ctrl
         self._aplicar_empujon()
         self._paso_fisica()
         self._medir()
@@ -341,6 +362,8 @@ class NaoRaceEnv(gym.Env):
         for _ in range(C.CICLOS_POR_ACCION):
             x = np.zeros(len(self._act_esf))
             for _ in range(medio):
+                while self._cola_ctrl and self._cola_ctrl[0][0] <= d.time + 1e-9:   # ordenes con retraso (rl_v1.3)
+                    d.ctrl[self._act] = self._cola_ctrl.popleft()[1]
                 mujoco.mj_step(m, d)
                 x += (d.actuator_force[self._act_esf] / self._par_cont) ** 2
             x /= medio
@@ -482,7 +505,7 @@ class NaoRaceEnv(gym.Env):
         error_rumbo = C._recortar(C.envolver_angulo(self._rumbo_objetivo - self._rumbo_imu()),
                                   -C.LIMITE_ERROR_RUMBO, C.LIMITE_ERROR_RUMBO)
         _, kg = self.contactos_y_fsr()
-        carga = np.clip(kg / C.MASA_ROBOT_KG, 0.0, 2.0)
+        carga = np.clip(kg * self._escala_fsr / C.MASA_ROBOT_KG, 0.0, 2.0)   # escala del FSR real (rl_v1.3)
         return np.concatenate([
             gravedad, giro * C.ESCALA_GIRO, [error_rumbo], self.camara.observacion(self.t),
             qj - self._home_acc, dq * C.ESCALA_VEL_ARTICULAR, self._prev_action, carga,

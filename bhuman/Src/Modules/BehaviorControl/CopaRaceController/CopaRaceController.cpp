@@ -33,7 +33,11 @@ void CopaRaceController::update(GameState& gameState)
 {
   step();
   gameState = GameState(); // equipo, colores y numero de jugador de la configuracion desplegada
-  gameState.ownTeam.playerStates.fill(GameState::active);
+  // E69 (2026-10-16): en la carrera solo existe ESTE robot. Con todo el equipo en "active", la estrategia de futbol
+  // (StrategyBehaviorControl, s4v4) veia mas companeros que posiciones al pasar a "waiting" y abortaba
+  // (Behavior.cpp:600 ASSERT(remainingAgents.size() <= positionSubsets->size()); sigSEGV en Release).
+  // Los demas quedan como suplentes; el propio usa gameState.playerState (abajo).
+  gameState.ownTeam.playerStates.fill(GameState::substitute);
   gameState.opponentTeam.playerStates.fill(GameState::active);
   gameState.gameControllerActive = false;
   gameState.timeWhenStateStarted = state.timeWhenPhaseStarted;
@@ -41,6 +45,9 @@ void CopaRaceController::update(GameState& gameState)
   gameState.whistled = state.phase == CopaRaceState::running && state.startSource == CopaRaceState::refereeWhistle &&
                        state.timeWhenPhaseStarted == theFrameInfo.time;
   gameState.playerState = state.phase == CopaRaceState::unstiff ? GameState::unstiff : GameState::active;
+  const int propio = gameState.playerNumber - Settings::lowestValidPlayerNumber;
+  if(propio >= 0 && propio < static_cast<int>(gameState.ownTeam.playerStates.size()))
+    gameState.ownTeam.playerStates[propio] = gameState.playerState;
   switch(state.phase)
   {
     case CopaRaceState::unstiff:

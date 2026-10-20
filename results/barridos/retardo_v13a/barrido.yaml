@@ -1,0 +1,10 @@
+nombre: retardo_v13a
+agentes:
+- 0.5:instante:centrado=-5
+pasos: 5000000
+checkpoints: 5
+n_envs: 16
+eval_vx: 0.45
+env_extra: '{"retardo_accion_ms": [0, 80], "escala_fsr": [0.4, 1.1]}'
+base: policies/rl_v1.2.1
+umbral_esfuerzo: 0.75

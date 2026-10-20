@@ -13,8 +13,8 @@
  * La politica (Config/NeuralNets/CopaRace/<policy>.cfg, exportada con scripts/exportar_politicas_robot.py) y todo
  * el contrato estan en Tools/CopaRace/CopaRace.h, comprobados contra Python con scripts/check_paridad_robot.py.
  *
- * Seguridad (CLAUDE.md, robot real): paro enclavado por inclinacion y por temperatura de los motores de las
- * piernas; tras el paro el generador entrega la postura de pie de B-Human hasta la siguiente carrera. Las caidas
+ * Seguridad (CLAUDE.md, robot real): paro enclavado por inclinacion, por temperatura de los motores de las
+ * piernas y cuando el robot es levantado (FallDownState::pickedUp, el "Picked up" de B-Human); tras el paro el generador entrega la postura de pie de B-Human hasta la siguiente carrera. Las caidas
  * las sigue atrapando el FallEngine de B-Human y al terminar la fase B-Human se pone de pie desde la postura medida.
  *
  * @author Repo NAO (caminata RL)
@@ -32,6 +32,7 @@
 #include "Representations/MotionControl/StandGenerator.h"
 #include "Representations/MotionControl/WalkAtRelativeSpeedGenerator.h"
 #include "Representations/Perception/LanePercepts/LanePercept.h"
+#include "Representations/Sensing/FallDownState.h"
 #include "Representations/Sensing/InertialData.h"
 #include "Streaming/AutoStreamable.h"
 #include "Tools/CopaRace/CopaRace.h"
@@ -68,6 +69,7 @@ MODULE(CopaRLWalkEngine,
 {,
   REQUIRES(CopaRaceDecision),
   REQUIRES(CopaRaceState),
+  REQUIRES(FallDownState),   // sesion real 1 (2026-10-16): levantado = paro, como en el futbol de B-Human
   REQUIRES(FrameInfo),
   REQUIRES(FsrSensorData),
   REQUIRES(InertialData),
